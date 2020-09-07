@@ -25,38 +25,8 @@
 
 <body>
     <canvas width="400" height="400" id="game"></canvas>
+    <script src="./snake-game-core.js"></script>
     <script>
-        var canvas = document.getElementById('game');
-        var context = canvas.getContext('2d');
-
-        var grid = 16;
-        var count = 0;
-
-        var snake = {
-            x: 160,
-            y: 160,
-
-            // snake velocity. moves one grid length every frame in either the x or y direction
-            dx: grid,
-            dy: 0,
-
-            // keep track of all grids the snake body occupies
-            cells: [],
-
-            // length of the snake. grows when eating an apple
-            maxCells: 4
-        };
-        var apple = {
-            x: 320,
-            y: 320
-        };
-
-        // get random whole numbers in a specific range
-        // @see https://stackoverflow.com/a/1527820/2124254
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min)) + min;
-        }
-
         // game loop
         function loop() {
             requestAnimationFrame(loop);
@@ -67,7 +37,6 @@
             }
 
             count = 0;
-            context.clearRect(0, 0, canvas.width, canvas.height);
 
             // move snake by it's velocity
             snake.x += snake.dx;
@@ -97,12 +66,6 @@
                 snake.cells.pop();
             }
 
-            // draw apple
-            context.fillStyle = 'red';
-            context.fillRect(apple.x, apple.y, grid - 1, grid - 1);
-
-            // draw snake one cell at a time
-            context.fillStyle = 'green';
             snake.cells.forEach(function (cell, index) {
 
                 // drawing 1 px smaller than the grid creates a grid effect in the snake body so you can see how long it is
@@ -136,37 +99,46 @@
             });
         }
 
-        // listen to keyboard events to move the snake
-        document.addEventListener('keydown', function (e) {
-            // prevent snake from backtracking on itself by checking that it's
-            // not already moving on the same axis (pressing left while moving
-            // left won't do anything, and pressing right while moving left
-            // shouldn't let you collide with your own body)
+        // 400*400 画布
+        var canvas = document.getElementById('game');
+        var context = canvas.getContext('2d');
+        // 25*25 个格子 
+        // 每个格子大小为 400/25=16, 16*16
+        var gridSize = 16;
 
-            // left arrow key
-            if (e.which === 37 && snake.dx === 0) {
-                snake.dx = -grid;
-                snake.dy = 0;
-            }
-            // up arrow key
-            else if (e.which === 38 && snake.dy === 0) {
-                snake.dy = -grid;
-                snake.dx = 0;
-            }
-            // right arrow key
-            else if (e.which === 39 && snake.dx === 0) {
-                snake.dx = grid;
-                snake.dy = 0;
-            }
-            // down arrow key
-            else if (e.which === 40 && snake.dy === 0) {
-                snake.dy = grid;
-                snake.dx = 0;
+        function render(apple, snakes) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            // draw apple
+            context.fillStyle = 'red';
+            context.fillRect(apple[0] * gridSize, apple[1] * gridSize, gridSize - 1, gridSize - 1);
+            // draw snake
+            context.fillStyle = 'green';
+            snakes.forEach((snake) => {
+                context.fillRect(snake[0] * gridSize, snake[1] * gridSize, gridSize - 1, gridSize - 1);
+            });
+        }
+        var game = new SnakeGame({ render, width: 25, height: 25 });
+        game.start();
+
+        document.addEventListener('keydown', function (e) {
+            switch (e.which) {
+                case 37:
+                    game.left();
+                    break;
+                case 38:
+                    game.up();
+                    break;
+                case 39:
+                    game.right();
+                    break;
+                case 40:
+                    game.down();
+                    break;
+                default:
+                    break;
             }
         });
 
-        // start the game
-        requestAnimationFrame(loop);
     </script>
 </body>
 
